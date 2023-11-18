@@ -1,0 +1,25 @@
+---
+title: "Route53"
+---
+
+- DNS - Port 53
+  - IPv4 - 32 bit field, 4 billion addresses
+  - IPv6 - 128 bits
+  - Internet Assigned Numbers Authority - TLD
+  - Registrars - interNic, ICANN
+  - Time To Live - TTL
+  - SOA - Start of Authority
+  - NS - Name Server
+  - A - Address
+  - MX, PTR (map ip to name)
+  - CName - Canonical Name - map one domain name to another. Can’t be used for naked domain names (zone apex record)
+  - Alias - map resource record sets in your hosted zone to AWS services. (In exam, always choose Alias record?)
+  - ELBs never have a pre-defined IPv4 address, always resolve with DNS name
+- Routing
+  - Simple - 1 record w/ multiple IP addresses -> return all in random order
+  - Weighted - allows you to split based on weights. set-id. health checks (SNS notifications, removed from DNS until healthy)
+  - Latency-based - route based on lowest network latency for user
+  - Failover - for active/passive set up. primary will need health check
+  - Geolocation - route based on the location of user. use cases: european customers have specific set of servers (maybe b/c configured w/ language or SLA)
+  - Geoproximity - Traffic Flow Only. Bias expands or shrinks the size of the geographic region
+  - Multivalue Answer - like simple routing but allows you to put health check on each record set

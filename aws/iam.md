@@ -1,0 +1,90 @@
+---
+title: "IAM"
+---
+
+- Not region specific
+- Default access for User is no access to any AWS Services
+- User sign in URL is different than the root user's
+- Power User = all services except management of groups and users in IAM
+- Deny for a user will override any other policy
+- Roles are more secure than access keys. Roles are universal (not tied to region).
+
+## AWS Organizations
+- Root for billing only - use MFA 
+- OU - finance, dev, etc
+- Apply policies to OU
+- Consolidated Billing - volume pricing discount
+- Paying account is independent (root)
+- Service Control Policies 
+
+## Advanced IAM
+- AWS Directory Service
+    - Standalone directory in the cloud
+    - Use existing corporate creds
+    - SSO to any domain-joined EC2 instance
+    - Hierarchical db of users, groups, computers - trees / forests
+    - LDAP & DNS
+    - Kerberos, LDAP, NTLM Auth
+- AWS Managed Microsoft AD
+    - 2 Domain Controllers (DC) in 2 AZ
+    - Reachable in VPC
+    - Add DCs for HA/performance
+    - Exclusive access to DCs
+    - Extend to existing AD using AD trust
+    - Responsibility of customer: User, groups, GPA, standard AD tools, trusts, scale out DCs, federation
+- Simple AD
+    - Standalone managed directory
+    - Small <= 500; Large <= 5K users
+    - Easier to manage ECs
+    - Linux workloads that need LDAP
+    - Doesn’t support AD trusts (can’t extend to on-prem)
+- AD Connector
+    - Directory gateway (proxy) for on-premises AD
+    - Avoid caching in cloud 
+    - Allow on-premises users to log in to AWS using AD
+    - Join EC2 instances to your existing AD domain
+    - Scale across multiple AD connectors
+- Cloud Directory (Not AD compatible)
+    - Directory-based store for developers
+    - Multiple Hierarchies for hundred of millions fo objects
+    - Use cases: org charts, course catalogs, device registries
+    - Fully managed service
+- Amazon Cognito User Pools (Not AD compatible)
+    - Managed user directory for Saas applications
+    - Sign-up / in for web or mobile
+    - Works w/ Social media identities
+- IAM Policies
+    - Amazon Resource Name - ARN
+        - arn:partition:service:region:account_id:   arn:aws:s3:us-east-1:123456789012
+        - Ends with resource, resource_type/resource, resource_type/resource/qualifier
+        - Omitted value is :: (e.g. IAM has no region, s3 doesn’t need account id or region :::)
+    - identity policy
+    - Resource policy
+    - No effect until attached
+    - Policy document is list of statements - each statement matches an AWS API request
+    - Effect: Allow/Deny
+    - Action: service:operation (DynamoDB:BatchGet"
+    - Resource it’s against
+    - Inline policies can be attached direct to Role (not a best practice)
+    - Not explicitly allowed == implicitly denied
+    - Explicit deny > everything else 
+    - Only attached policies have effect (when attached to Role)
+    - AWS joins all applicable policies
+    - Permission Boundaries
+        - Used to delegate administration to other users
+        - Prevent privilege escalation or unnecessarily broad permissions
+        - Control maximum permissions an IAM Policy can grant
+        - Use cases:
+            - Developers creating roles for Lambda functions
+            - Application owners creating roles for EC2 instances
+            - Admins creating ad hoc users
+        - Example: User has policy of Administrator but setting permission boundary to AmazonDynamoDbFullAccess won’t let them get anything more than that
+- AWS Resource Access Manager (RAM)
+    - If have individual accounts or organization, allows resource sharing between accounts
+    - 8 types: app mesh, aurora, codebuild, ec2, ec2 image builder, license manager, resource groups, route 53
+    - Example: launch EC2 instances in a shared subnet
+    - Invitations must be accepted in RAM
+- AWS Single Sign-On
+    - Centrally manage access to AWS accounts and business applications
+    - Can use existing corporate identities
+    - SAML 2.0 enabled applications (if see on exam, look for SSO)

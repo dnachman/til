@@ -1,0 +1,57 @@
+---
+title: "High Availability"
+---
+
+## Elastic Load Balancers
+- InService / OutofService - 
+- Can spread across AZs, not regions
+- Application Load Balancer
+  - HTTP/HTTPS - Layer 7. Application aware
+  - Advanced request routing, route requests to specific web servers
+  - Target Groups to specify EC2, etc.
+  - Allows Rules on many different variables
+- Network Load Balancer
+  - TCP traffic where extreme performance required - Layer 4
+  - Millions of requests per second while maintaining ultra-low latencies
+- Classic load balancer
+  - Legacy - Layer 7-specific features, but not application aware
+  - Can use X-Forwarded-For (the user IP address, otherwise your application will see the load balancer IP) and sticky
+  - Can use strict Layer 4
+  - Responds with 504 Gateway time-out if having issues - web or db server?
+- Sticky Sessions - bind a user’s session to a particular EC2 instance
+  - Classic load balancer -> target particular ec2
+  - Application Load Balancer -> target group level
+- Cross Zone Load Balancing - When enabled ELB can send to multiple AZs
+- Path Patterns - path-based routing
+- Auto Scaling
+  - Groups - logical groups e.g. Web Server, DB Servers
+  - Configuration Templates (launch template or launch configuration)
+  - Scaling Options - several options - dynamic scaling or schedule
+    - Maintain current instance levels at all times - periodic health check
+    - Scale manually - specify maximum, minimum, desired capacity
+    - Scale based on schedule - best for predictable schedule
+    - Scale based on demand - scaling policies - define parameters that control the scaling process. CPU ~ 50 percent, etc
+    - Use predictive scaling - use EC2 Auto Scaling with AWS Auto Scaling
+  - Create Launch Configuration and then an AutoScaling Group (moving to Launch Templates)
+- CloudFormation - script your cloud environment. Quick Starts allow you use stacks created by AWS Architects
+- Elastic Beanstalk - aimed at developers that don’t want to learn cloud formation. ASG and growing.
+- Bastion Hosts Highly Available:
+  - 2 EC2 Instances, 2 Availability Zones, Network Load Balancer w/ static IP (layer 4 b/c port 22)
+  - 1 EC2 Instance + EIP, Auto Scaling group w/ 2 Availability Zones - UserData script to take over that EIP
+- On-Premises Services with AWS
+  - Database Migration Service (DMS)
+    - Allows you to move databases to and from AWS
+    - Might have DR in AWS and primary is on-prem
+    - Works w/ most popular DB: oracle, mysql, dynamodb
+    - Homogenous & heterogeneous migrations
+  - Server Migration Service (SMS)
+    - Incremental replication of your on-prem servers into AWS
+    - Can be used as a backup tool, multi-site strategy (on-prem, off-prep), DR tool
+  - AWS Application Discovery Service
+    - Helps enterprise customers plan migration projects by gathering information from their on-premises data centers
+    - Agentless connect installs as virtual appliance in VMware vCenter
+    - Build utilization map and dependency map
+    - Encrypted data up to AWS, estimate Total Cost of Ownership and plan
+    - Also available in the AWS Migration Hub where you can migrate discovered servers and track their progress as they get to AWS
+  - VM Import/Export - migrate existing to EC2, DR tool, allow you to export AWS Ec2 to VM
+  - Download Amazon Linux 2 as an ISO - VMware, Hyper-V, Kvm, VirtualBox

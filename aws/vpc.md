@@ -1,0 +1,108 @@
+---
+title: "VPC"
+---
+
+- Logically isolated Virtual Private Cloud
+- Region -> VPC -> Internet/Virtual Private Gateway -> Router -> route table -> network ACL (stateless) -> subnet -> security group (stateful)
+- Private Subnets - http://CIDR.xyz
+  - 10.0.0.0 - 10.255.255.255 (10/8)
+  - 172.16.0.0 - 172.31.255.255.255 (172.16/12)
+  - 192.168.0.0 - 192.168.255.255 (192.168/16)
+  - Largest subnet in a VPC is /16
+- VPC Peering - between subnets, across accounts, etc. NO Transitive Peering
+- Can’t have subnet span an AZ (1 subnet = 1 AZ)
+- /16 - has 5 reserved addresses : .0 .1 .2 .3 .255
+- Create a new VPC comes w/ default Route Table, Network Access Control List (NACL) and a default Security Group (no subnets created, no default internet gateway)
+- AZ’s are randomized (us-east-1a is different between accounts)
+- VPN consists of Customer Gateway and Virtual Private Gateway (sits at edge of VPC)
+- 5 VPCs allowed per region
+- By default, a security group includes an outbound rule that allows all outbound traffic.
+- AWS releases your instance's public IP address when it is stopped, hibernated, or terminated.
+- The purpose of an egress-only internet gateway is to allow IPv6 based traffic within a VPC to access the internet, whilst denying any internet based resources to connection back into the VPC
+- Create VPC
+  - Create Subnets in 1 or more AZ. Autoassign IP for ones that will be public
+  - Create Internet Gateway and attach to VPC (only one IGW per VPC)
+  - Create Route table. Set route for internet (0.0.0.0/0, ::0) to IGW
+  - Associate subnet w/ Routing table
+  - Use security group to talk between subnets (Security groups can’t span VPCs)
+  - NAT Gateway - HA gateway (redundant inside an AZ) - can’t span AZ. 5Gbps and scales to 45Gbps, no patching needed, no security groups. Can have multiple NAT GW in multiple AZ and configure routing per AZ. Automatically assigned a public IP address. Make sure to update your route tables.
+  - NAT Instance - single instance (not HA) - must disable source/destination check  (phasing out) - add to route table and use instance for target. make sure Security Group for instance allows for access w/ source of private subnet. Must be in public subnet. 
+- Network Access Control Lists - stateless
+  - Deny everything by default for new custom NACL. (Default NACL allows all in/out)
+  - Need both inbound and outbound rules
+  - Evaluate by rule numbers
+  - Ephemeral ports: 1024 - 65535 (to do yum updates will need them open for both inbound and outbound)
+  - Each VPC must be associated w/ a NACL - if not automatically associated w/ default NACL
+  - Can be used to block IP Addresses - can’t do this w/ security groups
+  - 1 NACL : n subnet
+  - 1 subnet : 1 NACL (a subnet can be associated w/ only one network ACL at a time)
+- Elastic Load Balancers and custom VPC:
+  - Need at least 2 public subnets
+  - Will stop you from connecting subnet not connected to IGW (not public)
+- VPC Flow Logs - capture info about IP traffic in VPC
+  - CloudWatch logs / S3
+  - 3 Levels
+    - VPC
+    - Subnet
+    - Network Interface Level (ENI)
+  - Can’t enable flow logs for VPCs that are peered w/ your VPC unless the peer is in your account
+  - Can tag, can’t change configuration
+  - Not all IP traffic is monitored - Amazon DNS, Windows License, 169.254.169.254, DHCP, traffic to reserved IPs in VPC are all not monitored
+  - S3 is more cost effective long term for storage over Cloudwatch
+- Bastion Host / Jump Box - securely administer EC2 instances. Can’t use a NAT gw as a bastion host.
+- Direct Connect - dedicated network connection from your premises to AWS
+  - Cages in same data center - hi throughput workload + stable and reliable secure connection
+  - Customer data center -> Direct Connect DC Customer/Partner router -> x-connect to DX Router -> DX Connection to AWS Region/Backbone. 
+  - Does not traverse the internet
+  - An upgrade from VPN
+  - Configure:
+    - Create a virtual interface in the Direct Connect console. This is a PUBLIC virtual interface
+    - VPC Console -> VPN Connections -> Create Customer Gateway
+    - Create a Virtual Private Gateway
+    - Attach the Virtual Private Gateway to the desired VPC
+    - Select VPN Connections and create a new VPN Connections
+    - Select the Virtual Private Gateway and the Customer Gateway
+    - Once the VPN is available, setup the VPN on the customer gateway or firewall
+- Global Accelerator
+  - Improve availability and performance of your apps. Directs traffic to optimal endpoints over the AWS global network.  Avoids using many ISPs/networks (uses edge network)
+  - Components:
+    - 2 static IP addresses provided or BYO
+    - Accelerator - directs - 1 or more listeners
+    - DNS Name - *.awsglobalaccelerator.com
+    - Network Zone - services static IP addresses, isolated unit w/ own physical infrastructure (like a AZ) - 2 zones
+    - Listener - TCP
+    - Endpoint Group - one or more associated w/ listener. Associated w/ a specific AWS region. Traffic dial to adjust percentage of traffic to go to endpoint group - can be used for blue/green deployments
+    - Endpoint - NLB, ALB, EC2, Elastic IP.  Can have weights. Can be internet or internal
+- VPC Endpoints
+  - privately connect you VPC to AWS Services powered by PrivateLink, no IGW, NAT, VPN or Direct Connect. Don’t require public IP. doesn’t leave AWS
+  - virtual devices - horizontally scaled, redundant, HA
+  - Interface Endpoint - ENI with private IP address - many services
+  - Gateway Endpoint - like NAT Gateway - S3 / DynamoDB
+- AWS PrivateLink
+  - Sharing Applications across VPCs:
+    - Open VPC to internet - security, everything in public subnet is public
+    - VPC Peering - manage many different peering relationships. Whole network accessible
+    - Private Link
+  - Best way to expose VPC to tens/hundreds/thousands
+  - Requires a NLB on the service VPC and ENI on the customer VPC
+- AWS Transit Gateway
+  - Simplified single point where all connections can connect in to 
+  - Thousands of VPC
+  - Hub and spoke model
+  - Works on regional basis - but can have it across multiple regions
+  - Access it from multiple AWS accounts using RAM (Resource Access Manager)
+  - Can use route tables to limit how VPCs talk to one another
+  - Works with Direct Connect as well as VPN connections
+  - Supports IP multicast (not supported by any other AWS Service)
+- AWS VPN CloudHub
+  - Single Virtual Private Gateway
+  - Hub and Spoke model (can talk spoke to spoke)
+  - Low cost, easy to manage - operates over public internet, but vpn encrypted
+- Network Costs
+  - Free Traffic In to VPC
+  - Connect to same AZ via private IP = free
+  - AZ to AZ via private IP ~ $0.01/Gb
+  - AZ to AZ via public Ip / internet ~$0.02
+  - VPC to VPC - inter-region ~ $0.02
+  - Private over public IP to save costs
+  - Stay in one AZ is free

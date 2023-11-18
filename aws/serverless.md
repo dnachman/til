@@ -1,0 +1,82 @@
+---
+title: "Serverless"
+---
+
+## Lambda
+- Compute service where you upload your code and create a Lambda Function.
+- AWS takes care of provisioning and managing, etc, no O/S, patching, etc
+- Event-driven (S3, DDB table)
+- HTTP requests (API GW, AWS SDKs)
+- API-GW - Lambda - Servlerless DB (DDB, Aurora Serverless)
+- Pricing: # of requests (1M free, $0.20 / 1M requests). Duration to nearest 100ms
+- No Servers
+- Continuously Scales Out (not up) automatically
+- Cheap
+- Functions can trigger other Functions
+- Can get extremely complicated - AWS X-ray allows you to debug what is happening 
+- Concurrency limit of 1000 executions per account per region
+- Know your triggers:
+  - API Gateway
+  - Alexa Skill
+  - Cognito
+  - IoT Rule
+  - SNS
+  - Kinesis
+  - SQS
+  - S3
+  - DynamoDB
+  - EventBridge
+  -  CloudWatch
+
+## Servlerless Application Model (SAM)
+- CloudFormation extension optimized for serverless
+- Can run locally via docker
+- Can use CodeDeploy
+- Resources / Outputs
+
+Elastic Container Service (ECS)
+- Container contains app, libraries, runtime, tools. Docker is container engine
+- Isolation benefits of virtualization w/ less overhead and faster start than VMs
+- Portable and her a consistent environment 
+- Managed container orchestration services
+- Create clusters - EC2 or Fargate
+- Schedules for optimal placement
+- Defines rules for CPU/memory
+- Monitors resource utilization
+- Deploy, update, roll back
+- Free (except EC2 / Fargate)
+- VPC, SG, EBS, ELB, CloudTrail, CloudWatch
+- Components:
+  - Cluster - logical collection of resources
+  - Task Definition - fine the application, can contain multiple containers
+  - Container Definition - inside Task, defines individual task uses - CPU, memory, port mappings
+  - Task - single running copy of any containers defined by a  task definition. One working copy of an application (eg DB and web containers)
+  - Service - allow task definitions to be scaled by adding tasks
+  - Registry - storage for container registry (ECS/DockerHub)
+- Fargate
+  - Servlerless container engine
+  - Eliminates need to provision and manage servers
+  - ECS and EKS
+  - Each workload runs in its own kernel
+  - Isolation and security
+  - Use EC2 instead if:
+    -    Compliance requirements
+    -    Broader customization of instance
+    -    Require GPUs
+- EKS - Elastic Kubernetes Service
+  - K8s
+  - Same toolset on-premises and in cloud
+  - Containers are grouped in pods
+  - Supports EC2 and Fargate
+  - Why?
+    -    Already using k8s
+    -    Want to migrate to AWS
+- ECR - Elastic container registry
+  - Managed docker container registry
+  - HA
+  - Integrated w/ IAM
+- ECS + ELB : ALB, NLB, CLB
+  - ALB allows - Dynamic host port mapping, path-based routing, priority rules
+  - ALB is preferred
+- EC2 Instance Role - applies policy to all tasks running on that EC2 instance
+- Task Role - applies policy per task (least privilege)
